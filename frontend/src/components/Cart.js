@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { TrashIcon, ShoppingBagIcon } from '@heroicons/react/24/outline';
+
+// Temporary icon replacements
+const TrashIcon = ({ className }) => <span className={className}>🗑️</span>;
+const ShoppingBagIcon = ({ className }) => <span className={className}>🛍️</span>;
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;

@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+
+// Temporary icon replacements
+const EyeIcon = ({ className }) => <span className={className}>👁</span>;
+const EyeSlashIcon = ({ className }) => <span className={className}>🙈</span>;
 
 const Login = () => {
   const [email, setEmail] = useState('');
