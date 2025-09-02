@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
-import { ShoppingCartIcon, UserIcon, HomeIcon, PhoneIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 
 const Navbar = ({ cartCount }) => {
   const { user, logout } = useAuth();
@@ -27,18 +26,19 @@ const Navbar = ({ cartCount }) => {
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/" className="flex items-center space-x-1 text-gray-600 hover:text-indigo-600 transition-colors">
-              <HomeIcon className="w-5 h-5" />
+              <span>🏠</span>
               <span>Home</span>
             </Link>
             <Link to="/products" className="flex items-center space-x-1 text-gray-600 hover:text-indigo-600 transition-colors">
+              <span>📦</span>
               <span>Products</span>
             </Link>
             <Link to="/contact" className="flex items-center space-x-1 text-gray-600 hover:text-indigo-600 transition-colors">
-              <PhoneIcon className="w-5 h-5" />
+              <span>📞</span>
               <span>Contact</span>
             </Link>
             <Link to="/policies" className="flex items-center space-x-1 text-gray-600 hover:text-indigo-600 transition-colors">
-              <DocumentTextIcon className="w-5 h-5" />
+              <span>📋</span>
               <span>Policies</span>
             </Link>
           </div>
@@ -47,7 +47,7 @@ const Navbar = ({ cartCount }) => {
           <div className="flex items-center space-x-4">
             {user && (
               <Link to="/cart" className="relative p-2 text-gray-600 hover:text-indigo-600 transition-colors">
-                <ShoppingCartIcon className="w-6 h-6" />
+                <span className="text-xl">🛒</span>
                 {cartCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {cartCount}
@@ -59,7 +59,7 @@ const Navbar = ({ cartCount }) => {
             {user ? (
               <div className="flex items-center space-x-4">
                 <Link to="/dashboard" className="flex items-center space-x-1 text-gray-600 hover:text-indigo-600 transition-colors">
-                  <UserIcon className="w-5 h-5" />
+                  <span>👤</span>
                   <span className="hidden sm:inline">{user.name}</span>
                 </Link>
                 <button
