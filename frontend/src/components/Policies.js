@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { ShieldCheckIcon, ArrowPathIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+
+// Temporary icon replacements
+const ShieldCheckIcon = ({ className }) => <span className={className}>🛡️</span>;
+const ArrowPathIcon = ({ className }) => <span className={className}>🔄</span>;
+const DocumentTextIcon = ({ className }) => <span className={className}>📄</span>;
 
 const Policies = () => {
   const [activeTab, setActiveTab] = useState('refund');

@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { PhoneIcon, EnvelopeIcon, MapPinIcon } from '@heroicons/react/24/outline';
+
+// Temporary icon replacements
+const PhoneIcon = ({ className }) => <span className={className}>📞</span>;
+const EnvelopeIcon = ({ className }) => <span className={className}>✉️</span>;
+const MapPinIcon = ({ className }) => <span className={className}>📍</span>;
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
