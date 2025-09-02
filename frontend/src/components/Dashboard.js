@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../App';
-import { DownloadIcon, ShoppingBagIcon, UserIcon, ClockIcon } from '@heroicons/react/24/outline';
+// Temporarily using simple text icons instead of heroicons to fix compilation
+const DownloadIcon = ({ className }) => <span className={className}>⬇</span>;
+const ShoppingBagIcon = ({ className }) => <span className={className}>🛍</span>;
+const UserIcon = ({ className }) => <span className={className}>👤</span>;
+const ClockIcon = ({ className }) => <span className={className}>🕐</span>;
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
