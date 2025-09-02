@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowRightIcon, StarIcon, CheckIcon } from '@heroicons/react/24/solid';
+
+// Temporary icon replacements
+const ArrowRightIcon = ({ className }) => <span className={className}>→</span>;
+const StarIcon = ({ className }) => <span className={className}>⭐</span>;
+const CheckIcon = ({ className }) => <span className={className}>✓</span>;
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;

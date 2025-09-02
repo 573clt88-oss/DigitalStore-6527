@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
-import { ChatBubbleLeftRightIcon, XMarkIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
+
+// Temporary icon replacements
+const ChatBubbleLeftRightIcon = ({ className }) => <span className={className}>💬</span>;
+const XMarkIcon = ({ className }) => <span className={className}>✕</span>;
+const PaperAirplaneIcon = ({ className }) => <span className={className}>➤</span>;
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;

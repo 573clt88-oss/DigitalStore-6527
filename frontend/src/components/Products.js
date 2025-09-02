@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../App';
-import { ShoppingCartIcon, HeartIcon } from '@heroicons/react/24/outline';
-import { CheckIcon } from '@heroicons/react/24/solid';
+
+// Temporary icon replacements
+const ShoppingCartIcon = ({ className }) => <span className={className}>🛒</span>;
+const HeartIcon = ({ className }) => <span className={className}>❤️</span>;
+const CheckIcon = ({ className }) => <span className={className}>✓</span>;
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
