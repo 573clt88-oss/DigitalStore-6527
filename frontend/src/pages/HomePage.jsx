@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import HeroSection from '../components/HeroSection';
+import CategorySection from '../components/CategorySection';
+import PromoSection from '../components/PromoSection';
 import ProductGrid from '../components/ProductGrid';
+import Footer from '../components/Footer';
 import { mockProducts, mockCart } from '../data/mockData';
 import { toast } from '../hooks/use-toast';
 
