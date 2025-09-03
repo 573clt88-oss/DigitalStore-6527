@@ -72,6 +72,13 @@ const HomePage = () => {
     });
   };
 
+  const handleCategoryClick = (category) => {
+    toast({
+      title: `${category.name} Category`,
+      description: `Browse ${category.productCount} items in ${category.name}`,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar 
@@ -79,11 +86,14 @@ const HomePage = () => {
         onCartClick={handleCartClick}
       />
       <HeroSection />
+      <CategorySection onCategoryClick={handleCategoryClick} />
+      <PromoSection />
       <ProductGrid 
         products={products}
         onAddToCart={handleAddToCart}
         onProductClick={handleProductClick}
       />
+      <Footer />
     </div>
   );
 };
