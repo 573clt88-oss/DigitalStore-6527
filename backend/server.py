@@ -14,6 +14,7 @@ from datetime import datetime
 # Import our custom services
 from email_service import email_service
 from digital_delivery import delivery_service
+from marketing_strategy import marketing_strategy
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
