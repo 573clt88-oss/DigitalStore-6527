@@ -428,6 +428,56 @@ async def send_marketing_campaign(campaign_data: dict, background_tasks: Backgro
     
     return {"message": f"Marketing campaign queued for {len(users)} recipients"}
 
+# Marketing Strategy & Research Endpoints
+@api_router.get("/marketing/strategy")
+async def get_marketing_strategy():
+    """Get comprehensive marketing strategy for $10-15K revenue goal"""
+    return marketing_strategy.get_zero_budget_marketing_strategy()
+
+@api_router.get("/marketing/products-research")
+async def get_products_research():
+    """Get top 4 digital products research and analysis"""
+    return marketing_strategy.get_top_4_products_research()
+
+@api_router.get("/marketing/suppliers")
+async def get_supplier_research():
+    """Get supplier research for digital products"""
+    return marketing_strategy.get_supplier_research()
+
+@api_router.get("/marketing/revenue-model")
+async def get_revenue_projection():
+    """Get detailed revenue projection model"""
+    return marketing_strategy.get_revenue_projection_model()
+
+@api_router.get("/marketing/automation-framework")
+async def get_automation_framework():
+    """Get business automation framework for passive income"""
+    return marketing_strategy.get_automation_framework()
+
+@api_router.get("/marketing/complete-strategy")
+async def get_complete_strategy():
+    """Get complete marketing strategy package"""
+    return {
+        "overview": "Complete Digital Store-6527 Marketing Strategy",
+        "generated_on": datetime.utcnow().isoformat(),
+        "revenue_goal": "$10,000-15,000 in 60 days",
+        "budget": "$0 (Free marketing strategies only)",
+        "products_research": marketing_strategy.get_top_4_products_research(),
+        "supplier_research": marketing_strategy.get_supplier_research(),
+        "marketing_strategy": marketing_strategy.get_zero_budget_marketing_strategy(),
+        "revenue_model": marketing_strategy.get_revenue_projection_model(),
+        "automation_framework": marketing_strategy.get_automation_framework(),
+        "next_steps": [
+            "1. Choose suppliers for top 4 products",
+            "2. Set up social media accounts (Instagram, TikTok, Twitter, LinkedIn)",
+            "3. Create content calendar for 60 days",
+            "4. Implement email marketing sequences",
+            "5. Launch first product with promotional campaign",
+            "6. Track metrics and optimize based on performance",
+            "7. Scale successful tactics and automate systems"
+        ]
+    }
+
 # Include the router in the main app
 app.include_router(api_router)
 
