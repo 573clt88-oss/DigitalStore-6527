@@ -1,4 +1,5 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, BackgroundTasks
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -10,6 +11,9 @@ from typing import List, Optional
 import uuid
 from datetime import datetime
 
+# Import our custom services
+from email_service import email_service
+from digital_delivery import delivery_service
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -20,7 +24,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Create the main app without a prefix
-app = FastAPI(title="Digital Store-6527 API", version="1.0.0")
+app = FastAPI(title="Digital Store-6527 API", version="2.0.0")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -71,6 +75,7 @@ class Order(BaseModel):
     amount: float
     status: str = "pending"  # pending, completed, failed
     payment_id: Optional[str] = None
+    download_url: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class OrderCreate(BaseModel):
@@ -78,11 +83,22 @@ class OrderCreate(BaseModel):
     product_id: str
     amount: float
 
+class EmailRequest(BaseModel):
+    email_type: str  # order_confirmation, product_delivery, customer_service, welcome, marketing
+    recipient_email: str
+    context: dict
+
+class ContactMessage(BaseModel):
+    name: str
+    email: str
+    subject: str
+    message: str
+
 
 # Basic Routes
 @api_router.get("/")
 async def root():
-    return {"message": "Digital Store-6527 API is running"}
+    return {"message": "Digital Store-6527 API is running with AI automation"}
 
 @api_router.get("/health")
 async def health_check():
@@ -152,7 +168,7 @@ async def delete_product(product_id: str):
 
 # User Routes
 @api_router.post("/users", response_model=User)
-async def create_user(user: UserCreate):
+async def create_user(user: UserCreate, background_tasks: BackgroundTasks):
     # Check if user already exists
     existing_user = await db.users.find_one({"email": user.email})
     if existing_user:
@@ -161,6 +177,16 @@ async def create_user(user: UserCreate):
     user_dict = user.dict()
     user_obj = User(**user_dict)
     await db.users.insert_one(user_obj.dict())
+    
+    # Send welcome email in background
+    background_tasks.add_task(
+        email_service.send_welcome_email,
+        {
+            'customer_name': user.name,
+            'customer_email': user.email
+        }
+    )
+    
     return user_obj
 
 @api_router.get("/users/{user_id}", response_model=User)
@@ -172,7 +198,7 @@ async def get_user(user_id: str):
 
 # Order Routes
 @api_router.post("/orders", response_model=Order)
-async def create_order(order: OrderCreate):
+async def create_order(order: OrderCreate, background_tasks: BackgroundTasks):
     # Verify product exists
     product = await db.products.find_one({"id": order.product_id, "is_active": True})
     if not product:
@@ -186,6 +212,19 @@ async def create_order(order: OrderCreate):
     order_dict = order.dict()
     order_obj = Order(**order_dict)
     await db.orders.insert_one(order_obj.dict())
+    
+    # Send order confirmation email in background
+    background_tasks.add_task(
+        email_service.send_order_confirmation,
+        {
+            'order_id': order_obj.id,
+            'customer_name': user['name'],
+            'customer_email': user['email'],
+            'product_name': product['name'],
+            'price': product['price']
+        }
+    )
+    
     return order_obj
 
 @api_router.get("/orders/{order_id}", response_model=Order)
@@ -201,10 +240,46 @@ async def get_user_orders(user_id: str):
     return [Order(**order) for order in orders]
 
 @api_router.put("/orders/{order_id}/status")
-async def update_order_status(order_id: str, status: str, payment_id: Optional[str] = None):
+async def update_order_status(order_id: str, status: str, payment_id: Optional[str] = None, background_tasks: BackgroundTasks = None):
+    # Get order details
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
     update_data = {"status": status}
     if payment_id:
         update_data["payment_id"] = payment_id
+    
+    # If order is completed, process digital delivery
+    if status == "completed":
+        # Get user and product details
+        user = await db.users.find_one({"id": order["user_id"]})
+        product = await db.products.find_one({"id": order["product_id"]})
+        
+        if user and product:
+            # Process digital delivery
+            delivery_info = await delivery_service.process_order_delivery({
+                'order_id': order_id,
+                'product_id': order["product_id"],
+                'user_id': order["user_id"],
+                'product_name': product['name']
+            })
+            
+            # Update order with download URL
+            if delivery_info.get('download_url'):
+                update_data["download_url"] = delivery_info['download_url']
+            
+            # Send product delivery email in background
+            if background_tasks:
+                background_tasks.add_task(
+                    email_service.send_product_delivery,
+                    {
+                        'customer_name': user['name'],
+                        'customer_email': user['email'],
+                        'product_name': product['name'],
+                        'download_link': delivery_info.get('download_url', 'Processing...')
+                    }
+                )
     
     result = await db.orders.update_one(
         {"id": order_id},
@@ -214,7 +289,98 @@ async def update_order_status(order_id: str, status: str, payment_id: Optional[s
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Order not found")
     
-    return {"message": "Order status updated successfully"}
+    return {"message": "Order status updated successfully", "delivery_processed": status == "completed"}
+
+# Digital Product Download Route
+@api_router.get("/download/{token}")
+async def download_product(token: str):
+    """Secure digital product download with token validation"""
+    
+    # Validate download token
+    token_data = delivery_service.validate_download_token(token)
+    if not token_data:
+        raise HTTPException(status_code=401, detail="Invalid or expired download token")
+    
+    # Get order and product details
+    order = await db.orders.find_one({"id": token_data['order_id']})
+    if not order or order['status'] != 'completed':
+        raise HTTPException(status_code=404, detail="Order not found or not completed")
+    
+    product = await db.products.find_one({"id": token_data['product_id']})
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Get product file
+    product_file = await delivery_service.get_product_file_path(product['name'])
+    if not product_file or not product_file.exists():
+        raise HTTPException(status_code=404, detail="Product file not available")
+    
+    # Increment download count
+    delivery_service.increment_download_count(token)
+    
+    # Return file for download
+    return FileResponse(
+        path=str(product_file),
+        filename=product_file.name,
+        media_type='application/octet-stream'
+    )
+
+# Email Routes (AI-Powered)
+@api_router.post("/emails/send")
+async def send_email(email_request: EmailRequest, background_tasks: BackgroundTasks):
+    """Send AI-generated emails"""
+    
+    email_types = ["order_confirmation", "product_delivery", "customer_service", "welcome", "marketing"]
+    if email_request.email_type not in email_types:
+        raise HTTPException(status_code=400, detail=f"Invalid email type. Must be one of: {email_types}")
+    
+    # Send email in background
+    if email_request.email_type == "order_confirmation":
+        background_tasks.add_task(email_service.send_order_confirmation, email_request.context)
+    elif email_request.email_type == "product_delivery":
+        background_tasks.add_task(email_service.send_product_delivery, email_request.context)
+    elif email_request.email_type == "customer_service":
+        background_tasks.add_task(email_service.send_customer_service_response, email_request.context)
+    elif email_request.email_type == "welcome":
+        background_tasks.add_task(email_service.send_welcome_email, email_request.context)
+    elif email_request.email_type == "marketing":
+        background_tasks.add_task(email_service.send_marketing_email, email_request.context)
+    
+    return {"message": f"AI-generated {email_request.email_type} email queued for sending"}
+
+@api_router.post("/emails/generate-content")
+async def generate_email_content(email_type: str, context: dict):
+    """Generate AI email content without sending"""
+    
+    content = await email_service.generate_email_content(email_type, context)
+    return {"email_type": email_type, "generated_content": content}
+
+# Contact Form Route
+@api_router.post("/contact")
+async def submit_contact_form(contact: ContactMessage, background_tasks: BackgroundTasks):
+    """Handle contact form submissions with AI-powered responses"""
+    
+    # Store contact message
+    contact_dict = contact.dict()
+    contact_dict['id'] = str(uuid.uuid4())
+    contact_dict['created_at'] = datetime.utcnow()
+    contact_dict['status'] = 'new'
+    
+    await db.contact_messages.insert_one(contact_dict)
+    
+    # Send AI-powered auto-response
+    background_tasks.add_task(
+        email_service.send_customer_service_response,
+        {
+            'customer_name': contact.name,
+            'customer_email': contact.email,
+            'original_subject': contact.subject,
+            'issue': contact.message,
+            'additional_context': 'This is an auto-response to your contact form submission. A team member will follow up soon.'
+        }
+    )
+    
+    return {"message": "Contact form submitted successfully. You'll receive an auto-response shortly."}
 
 # Analytics Routes
 @api_router.get("/analytics/overview")
@@ -223,6 +389,7 @@ async def get_analytics_overview():
     total_orders = await db.orders.count_documents({})
     total_users = await db.users.count_documents({})
     completed_orders = await db.orders.count_documents({"status": "completed"})
+    pending_orders = await db.orders.count_documents({"status": "pending"})
     
     # Calculate total revenue
     revenue_pipeline = [
@@ -232,13 +399,33 @@ async def get_analytics_overview():
     revenue_result = await db.orders.aggregate(revenue_pipeline).to_list(1)
     total_revenue = revenue_result[0]["total"] if revenue_result else 0
     
+    # Get contact messages count
+    total_contacts = await db.contact_messages.count_documents({})
+    
     return {
         "total_products": total_products,
         "total_orders": total_orders,
         "total_users": total_users,
         "completed_orders": completed_orders,
-        "total_revenue": total_revenue
+        "pending_orders": pending_orders,
+        "total_revenue": total_revenue,
+        "total_contacts": total_contacts,
+        "ai_features_active": True
     }
+
+# Marketing automation endpoint
+@api_router.post("/marketing/campaign")
+async def send_marketing_campaign(campaign_data: dict, background_tasks: BackgroundTasks):
+    """Send AI-generated marketing campaign to all users"""
+    
+    # Get all users
+    users = await db.users.find().to_list(1000)
+    
+    for user in users:
+        campaign_context = {**campaign_data, "customer_email": user["email"], "customer_name": user["name"]}
+        background_tasks.add_task(email_service.send_marketing_email, campaign_context)
+    
+    return {"message": f"Marketing campaign queued for {len(users)} recipients"}
 
 # Include the router in the main app
 app.include_router(api_router)
@@ -262,7 +449,7 @@ logger = logging.getLogger(__name__)
 async def shutdown_db_client():
     client.close()
 
-# Initialize with sample products
+# Initialize with sample products and setup
 @app.on_event("startup")
 async def startup_event():
     # Create sample products if none exist
@@ -309,3 +496,9 @@ async def startup_event():
         
         await db.products.insert_many(sample_products)
         logger.info("Sample products created")
+    
+    # Initialize digital delivery system
+    await delivery_service.create_sample_digital_products()
+    logger.info("Digital delivery system initialized")
+    
+    logger.info("Digital Store-6527 API started with AI automation features")
