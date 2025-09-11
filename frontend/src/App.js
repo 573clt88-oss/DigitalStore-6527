@@ -567,8 +567,12 @@ const CodeAnalyzer = () => {
       </div>
 
       <DebuggingWizardDialog 
-        wizard={wizard} 
-        onClose={() => setWizard(null)} 
+        wizard={wizard}
+        isOpen={wizardOpen}
+        onClose={() => {
+          setWizardOpen(false);
+          setWizard(null);
+        }} 
       />
     </div>
   );
