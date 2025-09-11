@@ -240,6 +240,7 @@ const CodeAnalyzer = () => {
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [wizard, setWizard] = useState(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   const { getRootProps, getInputProps, acceptedFiles } = useDropzone({
     accept: {
