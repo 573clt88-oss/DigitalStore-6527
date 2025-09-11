@@ -304,6 +304,7 @@ const CodeAnalyzer = () => {
     try {
       const response = await axios.get(`${API}/analysis/${result.id}/debug-wizard?error_id=${errorId}`);
       setWizard(response.data);
+      setWizardOpen(true);
     } catch (error) {
       console.error('Failed to create wizard:', error);
     }
