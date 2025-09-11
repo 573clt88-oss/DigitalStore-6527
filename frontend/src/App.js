@@ -155,13 +155,13 @@ const ErrorCard = ({ error, onCreateWizard }) => {
   );
 };
 
-const DebuggingWizardDialog = ({ wizard, onClose }) => {
+const DebuggingWizardDialog = ({ wizard, isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
 
   if (!wizard) return null;
 
   return (
-    <Dialog open={!!wizard} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
