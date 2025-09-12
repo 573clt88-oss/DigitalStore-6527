@@ -15,6 +15,12 @@ from datetime import datetime
 from email_service import email_service
 from digital_delivery import delivery_service
 from marketing_strategy import marketing_strategy
+from automation_sequences import automation_manager, content_engine, revenue_engine
+from analytics_automation import analytics, optimizer, competitor_monitor
+from content_generator import content_generator
+from action_plan_30_days import action_plan
+from customer_journey_automation import customer_journey_ai, behavioral_triggers, retention_system
+from revenue_optimization_engine import revenue_optimizer, pricing_engine, upsell_engine
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
