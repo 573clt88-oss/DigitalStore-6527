@@ -484,6 +484,83 @@ async def get_complete_strategy():
         ]
     }
 
+# ADVANCED AUTOMATION ENDPOINTS
+@api_router.get("/automation/content-calendar")
+async def get_automated_content_calendar(days: int = 30):
+    """Get AI-generated content calendar for specified days"""
+    return await content_generator.generate_30_day_calendar()
+
+@api_router.get("/automation/action-plan")
+async def get_30_day_action_plan():
+    """Get detailed 30-day action plan for revenue generation"""
+    return action_plan.get_complete_action_plan()
+
+@api_router.post("/automation/customer-journey")
+async def optimize_customer_journey(customer_data: dict):
+    """AI-powered customer journey optimization"""
+    return await customer_journey_ai.optimize_customer_journey(customer_data)
+
+@api_router.get("/automation/revenue-optimization")
+async def get_revenue_optimization():
+    """Get AI-powered revenue optimization recommendations"""
+    return await revenue_optimizer.optimize_revenue_streams()
+
+@api_router.get("/automation/pricing-optimization")
+async def get_pricing_optimization():
+    """Get dynamic pricing optimization strategies"""
+    return await pricing_engine.optimize_pricing()
+
+@api_router.get("/automation/upsell-optimization")
+async def get_upsell_optimization():
+    """Get upselling optimization strategies"""
+    return await upsell_engine.optimize_upsells()
+
+@api_router.post("/automation/behavioral-trigger")
+async def execute_behavioral_trigger(trigger_name: str, customer_data: dict):
+    """Execute behavioral trigger for customer"""
+    return await behavioral_triggers.execute_trigger(trigger_name, customer_data)
+
+@api_router.get("/automation/performance-analytics")
+async def get_performance_analytics():
+    """Get real-time performance analytics and alerts"""
+    return {
+        'metrics': await analytics.track_revenue_metrics(),
+        'alerts': await analytics.performance_alerts_system(),
+        'optimization_results': await optimizer.conversion_funnel_optimization(),
+        'competitor_analysis': await competitor_monitor.competitor_analysis()
+    }
+
+@api_router.post("/automation/generate-content")
+async def generate_ai_content(content_request: dict):
+    """Generate AI content for any platform or purpose"""
+    platform = content_request.get('platform', 'email')
+    theme = content_request.get('theme', 'productivity')
+    
+    if platform == 'instagram':
+        return await content_generator.generate_instagram_content(0, 'Monday', 1)
+    elif platform == 'tiktok':
+        return await content_generator.generate_tiktok_content(0, 'Monday', 1)
+    elif platform == 'twitter':
+        return await content_generator.generate_twitter_content(0, 'Monday', 1)
+    elif platform == 'linkedin':
+        return await content_generator.generate_linkedin_content(0, 'Monday', 1)
+    elif platform == 'email':
+        return await content_generator.generate_email_content(0, 'Monday', 1)
+    elif platform == 'blog':
+        return await content_generator.generate_blog_content(0, 'Monday', 1)
+    else:
+        return {"error": "Unsupported platform"}
+
+@api_router.get("/automation/daily-checklist")
+async def get_daily_checklist():
+    """Get daily checklist for maintaining automation"""
+    return action_plan.get_daily_checklist()
+
+@api_router.get("/automation/emergency-protocols")
+async def get_emergency_protocols():
+    """Get emergency protocols for when things go wrong"""
+    return action_plan.get_emergency_protocols()
+
 # Include the router in the main app
 app.include_router(api_router)
 
