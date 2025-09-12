@@ -562,6 +562,42 @@ async def get_emergency_protocols():
     """Get emergency protocols for when things go wrong"""
     return action_plan.get_emergency_protocols()
 
+# DOCUMENTATION DOWNLOAD ENDPOINTS
+@api_router.get("/documentation/create-package")
+async def create_documentation_package():
+    """Create complete downloadable documentation package"""
+    result = pdf_generator.create_documentation_package()
+    return result
+
+@api_router.get("/documentation/download-package")
+async def download_documentation_package():
+    """Download complete documentation as zip file"""
+    import zipfile
+    import io
+    from pathlib import Path
+    
+    # Create zip file in memory
+    zip_buffer = io.BytesIO()
+    
+    docs_dir = Path("/app/backend/documentation")
+    
+    # Create the documentation files first
+    pdf_generator.create_documentation_package()
+    
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for file_path in docs_dir.glob("*.md"):
+            zip_file.write(file_path, file_path.name)
+    
+    zip_buffer.seek(0)
+    
+    from fastapi.responses import StreamingResponse
+    
+    return StreamingResponse(
+        io.BytesIO(zip_buffer.read()),
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=Digital_Store_6527_Complete_Documentation.zip"}
+    )
+
 # Include the router in the main app
 app.include_router(api_router)
 
