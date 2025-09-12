@@ -21,6 +21,7 @@ from content_generator import content_generator
 from action_plan_30_days import action_plan
 from customer_journey_automation import customer_journey_ai, behavioral_triggers, retention_system
 from revenue_optimization_engine import revenue_optimizer, pricing_engine, upsell_engine
+from pdf_generator import pdf_generator
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
